@@ -4,11 +4,8 @@
     EECE 4830 - Network Design
     Programming Project Phase 1
 
-    phase1_UDP_client.py
-    - Creates socket and connects to port
-    - read datagram (user input) from client via socket 
-    - Send message (user input) back to client via socket
-    - close socket
+    phase1_UDP_server.py
+    - Run this before running phase1_UDP_client.py
     
 """
 # Imports
@@ -26,5 +23,6 @@ while True:
 
     # Echo the same message back to clinet via server socket
     echo_message = client_message.decode()
+    print("Message recived from the clinet!") # this works
     server_socket.sendto(echo_message.encode(), client_address)
 
