@@ -9,35 +9,111 @@
 """
 ## Imports
 from socket import *
+import os
 import struct
 import sys
 from pathlib import Path
 
 ## Sender Class
 class RDT22_Sender:
-    def __init__(self, pic_path):
-        # Server info, create client socket
-        self.server_name = 'localhost'
-        self.server_port = 12000
+    def __init__(self, pic_path, server_name, server_port):
+        # Server info, timeout, and create client socket
+        self.server_name = server_name
+        self.server_port = server_port
         self.client_socket = socket(AF_INET, SOCK_DGRAM)
+        self.client_socket.settimeout(1) # 1s
+
+        # Init protocol vars
+        self.seq = 0
+        self.ack = 0
 
         # Class Vars
         self.pic_path = pic_path
 
-    def make_packets(self):
-        ''' 
-        Breaks down image file into 1024 bytes chunks
-        '''
+    def get_all_chunks(self):
+        """ Split the whole file into 1024 bit chunks """
         chunk_size = 1024
-        self.all_chunks = []
+        all_chunks = []
         with open(self.pic_path, "rb") as f:
             file_data = f.read()
         for i in range(0, len(file_data), chunk_size):
-            chunk = file_data[i:i+chunk_size]
-            self.all_chunks.append(chunk)
+            chunk = file_data[i:i+chunk_size]  
+            all_chunks.append(chunk)
 
-        return self.all_chunks
+        return all_chunks
+
+    def calc_checksum(self, chunk):
+        """ Get checksum of the chunk """
+        # if chunk length is odd, add 0 byte to make it even
+        if len(chunk) % 2 != 0:
+            chunk += b'\x00'
+        checksum_sum = 0
+
+        # Add all 16 bit words
+        for i in range(0, len(chunk), 2):
+            word = (chunk[i] << 8) + chunk[i + 1]  # Big endian
+            checksum_sum += word
+
+        # Wrap overflow
+        while checksum_sum > 0xFFFF:
+            checksum_sum = (checksum_sum & 0xFFFF) + (checksum_sum >> 16)
+
+        # Ones complement and 16 bit mask
+        checksum = ~checksum_sum & 0xFFFF
+
+        return checksum
+
+    def make_packet(self, chunk, checksum):
+        """ Make a packet """
+        # return packet
+        pass
+
+    def send_packet(self, packet):
+        """ Send one packet """
+        self.client_socket.sendto(packet, (self.server_name, self.server_port))
+        return
+
+    def send_full_file(self):
+        """ Main running method to be called in main """
+        all_chunks = self.get_all_chunks()
+        
+        # Itirate thru all chunks, for one chunk
+        for current_chunk in all_chunks:
+            # Prepare a packet
+            checksum = self.calc_checksum(current_chunk)
+            current_packet = self.make_packet(current_chunk, checksum)
+            
+            # Stop and wait loop
+            while True:
+                # Send packet and wait for ACK from reciver (until timeout)
+                self.send_packet(current_packet)
+                
+                try:
+                    # Get ACK number from message from socket**
+                    ack_msg, _ = self.client_socket.recvfrom(2048)
+                    ack_number = int(ack_msg.decode())
+
+                    # Check that ACK number matches the right sequence number
+                    if ack_number == self.seq:
+                        # Flip seq number for next packet and go to next chunk
+                        self.seq = 1 - self.seq
+                        break 
+
+                    else:
+                        # Resend packet if it doesnt match
+                        self.send_packet(current_packet)
+                
+                # No ACK recived, resend packet
+                except timeout: 
+                    self.send_packet(current_packet)
+                    print("Timed out, resent packet")
+                    continue
+        
+        # Send END message after all chunks are sent
+        self.client_socket.sendto(b"END", (self.server_name, self.server_port))
+        print("Full fle sent")
 
 ## Main - Send JPEG image
 if __name__ == "__main__":
-    pass
+    my_pic = os.path.join("Himadri_Saha_Phase1", "phase1b", "my_cloud.bmp")
+    my_sender = RDT22_Sender(my_pic, 'localhost', 12000)
