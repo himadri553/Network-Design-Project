@@ -14,8 +14,6 @@ import sys
 from pathlib import Path
 import os
 
-## Vars
-
 ## Receiver Class
 class RDT22_Reciver:
     def __init__(self):
@@ -26,11 +24,29 @@ class RDT22_Reciver:
         self.server_port = 12000
         self.server_socket = socket(AF_INET, SOCK_DGRAM)
         self.server_socket.bind(('', self.server_port))
-        print("The RDT2.2 reciver is ready")
+        print("The RDT2.2 reciver is ready!")
 
-    def rx_send():
-        pass
+    def recive_message(self):
+        buffer_size = 2048
+        client_message, _ = self.server_socket.recvfrom(buffer_size)
+
+        return client_message
+
+    def test_get_message(self):
+        """ Testing if connection between sender and reciver is working... """
+        while True:
+            test_message = self.recive_message()
+            print("Got chunk from sender")
+
+            # Until end message is read
+            if test_message == b"END":
+                print("File transfer done")
+                break
+
+        return test_message
 
 ## Main
 if __name__ == "__main__":
-    pass
+    my_reciver = RDT22_Reciver()
+    my_reciver.test_get_message()
+    

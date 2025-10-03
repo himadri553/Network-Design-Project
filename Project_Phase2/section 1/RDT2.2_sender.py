@@ -22,6 +22,7 @@ class RDT22_Sender:
         self.server_port = server_port
         self.client_socket = socket(AF_INET, SOCK_DGRAM)
         self.client_socket.settimeout(1) # 1s
+        print("The RDT2.2 sender is ready!")
 
         # Init protocol vars
         self.seq = 0
@@ -64,9 +65,19 @@ class RDT22_Sender:
         return checksum
 
     def make_packet(self, chunk, checksum):
-        """ Make a packet """
-        # return packet
-        pass
+        """ 
+        Make a packet to send over UDP
+        Packet Format:
+        seq (1 byte) | checksum (2 bytes) | data (up to 1024 bytes)
+        """
+        # Pack seq and checksum to header
+        seq_bytes = struct.pack('!B', self.seq)
+        checksum_bytes = struct.pack('!H', checksum)
+
+        # Combine into one packet
+        packet = seq_bytes + checksum_bytes + chunk
+
+        return packet
 
     def send_packet(self, packet):
         """ Send one packet """
@@ -115,5 +126,6 @@ class RDT22_Sender:
 
 ## Main - Send JPEG image
 if __name__ == "__main__":
-    my_pic = os.path.join("Himadri_Saha_Phase1", "phase1b", "my_cloud.bmp")
+    my_pic = os.path.join("Project_Phase2", "test_img.JPG")
     my_sender = RDT22_Sender(my_pic, 'localhost', 12000)
+    my_sender.send_full_file()
