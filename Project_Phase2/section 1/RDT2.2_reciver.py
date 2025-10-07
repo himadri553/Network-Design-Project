@@ -11,6 +11,7 @@
 from socket import *
 import struct
 import os
+import time
 
 ## Receiver Class
 class RDT22_Reciver:
@@ -45,6 +46,9 @@ class RDT22_Reciver:
 
     def run_receiver(self):
         """ Main loop to receive and process packets """
+        # Start time for plotting
+        start_time = time.time()
+
         while True:
             packet, client_address = self.server_socket.recvfrom(2048)
 
@@ -52,6 +56,13 @@ class RDT22_Reciver:
             if packet == b"END":
                 print("File transfer complete.")
                 self.file.close()
+
+                # End time for plotting
+                end_time = time.time()
+                duration = end_time - start_time
+                with open("Project_Phase2/receiver_completion_time.txt", "w") as f:
+                    f.write(f"{duration:.4f}")
+
                 break
 
             # Parse packet: seq (1 byte), checksum (2 bytes), data (rest)

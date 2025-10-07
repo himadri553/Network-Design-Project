@@ -5,8 +5,8 @@
     Programming Project Phase 2 - Section 1
 
     PerformacePlotter.py:
-    - Plots completion time of RDT2.2 sender and reciver file transfer at 
-    0% loss/error to 60% loss/error in increments of 5%
+    - Plots completion time of RDT2.2 sender and reciver file 
+    - To be used to plot time of transfer at 0% loss/error to 60% loss/error in increments of 5%
 
 """
 ## Imports

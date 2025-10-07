@@ -13,6 +13,7 @@ import os
 import struct
 import sys
 from pathlib import Path
+import time
 
 ## Sender Class
 class RDT22_Sender:
@@ -86,9 +87,11 @@ class RDT22_Sender:
 
     def send_full_file(self):
         """ Main running method to be called in main """
-        all_chunks = self.get_all_chunks()
+        # Start time for plotting
+        start_time = time.time()
         
         # Itirate thru all chunks, for one chunk
+        all_chunks = self.get_all_chunks()
         for current_chunk in all_chunks:
             # Prepare a packet
             checksum = self.calc_checksum(current_chunk)
@@ -123,6 +126,12 @@ class RDT22_Sender:
         # Send END message after all chunks are sent
         self.client_socket.sendto(b"END", (self.server_name, self.server_port))
         print("Full fle sent")
+
+        # End time a for plotting
+        end_time = time.time()
+        duration = end_time - start_time
+        with open("Project_Phase2/sender_completion_time.txt", "w") as f:
+            f.write(f"{duration:.4f}")
 
 ## Main - Send JPEG image
 if __name__ == "__main__":
