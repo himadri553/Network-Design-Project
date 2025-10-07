@@ -16,7 +16,7 @@ import os
 class RDT22_Reciver:
     def __init__(self):
         # Set output file path
-        self.dest_filepath = os.path.join("Project_Phase2", "section1", "received.jpg")
+        self.dest_filepath = os.path.join("Project_Phase2",  "received.jpg")
         os.makedirs(os.path.dirname(self.dest_filepath), exist_ok=True)
 
         # Create and bind server socket to start server
