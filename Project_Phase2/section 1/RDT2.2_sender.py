@@ -14,10 +14,11 @@ import struct
 import sys
 from pathlib import Path
 import time
+import random
 
 ## Sender Class
 class RDT22_Sender:
-    def __init__(self, pic_path, server_name, server_port):
+    def __init__(self, pic_path, server_name, server_port, scenario):
         # Server info, timeout, and create client socket
         self.server_name = server_name
         self.server_port = server_port
@@ -31,6 +32,7 @@ class RDT22_Sender:
 
         # Class Vars
         self.pic_path = pic_path
+        self.scenario = scenario
 
     def get_all_chunks(self):
         """ Split the whole file into 1024 bit chunks """
@@ -107,6 +109,12 @@ class RDT22_Sender:
                     ack_msg, _ = self.client_socket.recvfrom(2048)
                     ack_number = int(ack_msg.decode())
 
+                    # Scenario 2: Inject bit error into ACK at sender side (1 in 5 ACKs)
+                    if self.scenario == "2":
+                        if random.random() < 0.2:
+                            print(f"[Scenario 2] Injecting bit error into ACK: {ack_number} to {ack_number ^ 1}")
+                            ack_number ^= 1
+
                     # Check that ACK number matches the right sequence number
                     if ack_number == self.seq:
                         # Flip seq number for next packet and go to next chunk
@@ -135,6 +143,19 @@ class RDT22_Sender:
 
 ## Main - Send JPEG image
 if __name__ == "__main__":
+    # User prompts for secnarios
+    print("Select scenario to run:")
+    print("1 - No loss/bit errors")
+    print("2 - Inject bit error into ACK packet (Sender)")
+    print("3 - Inject bit error into DATA packet (Receiver)")
+    scenario = input("Enter option number (1/2/3): ").strip()
+
+    if scenario not in ["1", "2", "3"]:
+        print("Invalid option. Exiting.")
+        sys.exit(1)
+
+    
+
     my_pic = os.path.join("Project_Phase2", "test_img.JPG")
-    my_sender = RDT22_Sender(my_pic, 'localhost', 12000)
+    my_sender = RDT22_Sender(my_pic, 'localhost', 12000, scenario)
     my_sender.send_full_file()
