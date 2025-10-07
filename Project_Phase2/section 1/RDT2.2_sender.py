@@ -6,6 +6,19 @@
 
     RDT2.2_sender.py
 
+    To run:
+        - Go to Project_Phase2\scenario_mode.txt and set the scenario as described by the project
+        - In one terminal, first run Project_Phase2\section 1\RDT2.2_reciver.py
+        - In another, run Project_Phase2\section 1\RDT2.2_sender.py
+        - Time will be tracked and logged. To plot, run Project_Phase2\section 1\PerformacePloter.py
+
+    Scenario 2 Implementation:
+        Changing ACK number as an error 20% of the time
+
+    Known issue with user prompt:
+    - To run secnarios 1 and 2 (or if correct scenario is not running), please go to Project_Phase2\scenario_mode.txt
+    - change number to approiate scenario number
+
 """
 ## Imports
 from socket import *
@@ -149,13 +162,15 @@ if __name__ == "__main__":
     print("2 - Inject bit error into ACK packet (Sender)")
     print("3 - Inject bit error into DATA packet (Receiver)")
     scenario = input("Enter option number (1/2/3): ").strip()
-
     if scenario not in ["1", "2", "3"]:
         print("Invalid option. Exiting.")
         sys.exit(1)
 
+    # Write to scenario file (just manually edit that in Project_Phase2/scenario_mode.txt for now)
+    with open("Project_Phase2/scenario_mode.txt", "w") as f:
+        f.write(scenario)
     
-
+    # Start sender
     my_pic = os.path.join("Project_Phase2", "test_img.JPG")
     my_sender = RDT22_Sender(my_pic, 'localhost', 12000, scenario)
     my_sender.send_full_file()
