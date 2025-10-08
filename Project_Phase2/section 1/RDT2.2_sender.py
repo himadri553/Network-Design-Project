@@ -151,7 +151,7 @@ class RDT22_Sender:
         # End time a for plotting
         end_time = time.time()
         duration = end_time - start_time
-        with open("Project_Phase2/sender_completion_time.txt", "w") as f:
+        with open("scenario_mode.txt", "w") as f:
             f.write(f"{duration:.4f}")
 
 ## Main - Send JPEG image

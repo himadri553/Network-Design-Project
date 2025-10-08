@@ -67,6 +67,19 @@ class RDT22_Receiver_Advanced:
         """Simulate network delay (0–500 ms)"""
         delay = random.randint(0, 500) / 1000.0
         time.sleep(delay)
+    
+    def calc_checksum(self, data):
+        """Compute 16-bit checksum (same as Himadri's sender)."""
+        if len(data) % 2 != 0:
+            data += b'\x00'
+        checksum_sum = 0
+        for i in range(0, len(data), 2):
+            word = (data[i] << 8) + data[i + 1]
+            checksum_sum += word
+        while checksum_sum > 0xFFFF:
+            checksum_sum = (checksum_sum & 0xFFFF) + (checksum_sum >> 16)
+        return ~checksum_sum & 0xFFFF
+
 
     def process_packet(self, packet, client_address):
         """Handle each received packet according to RDT 2.2 logic."""
@@ -88,12 +101,13 @@ class RDT22_Receiver_Advanced:
         self.simulate_delay()
 
         # Calculate CRC-16 on data
-        calc_crc = self.crc16(data)
+        calc_checksum = self.calc_checksum(data)
+
 
         self.total_packets += 1
 
         # Check corruption and sequence correctness
-        if calc_crc == recv_checksum and seq_num == self.expected_seq:
+        if calc_checksum == recv_checksum and seq_num == self.expected_seq:
             self.file.write(data)
             self.log(f"✅ Packet {seq_num} received correctly.")
             self.expected_seq = 1 - self.expected_seq
