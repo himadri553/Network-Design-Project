@@ -1,23 +1,25 @@
 # EECE 4830 - Network Design  
-## Programming Project Phase 2 – Section II  
-### RDT 2.2 Receiver with Extra Credit Features  
-**Author:** Nour Fouad Fahmy  
-**Teammate:** Himadri Saha
+## Programming Project Phase 2 - Section 1
+### RDT 2.2 Receiver, Sender, and Performance Plotting
+**Team:** Nour Fouad Fahmy, Himadri Saha 
 
 ---
 
 ## File Descriptions
 | File | Description |
 |------|--------------|
-| `RDT22_Receiver_Advanced.py` | Implements the advanced RDT 2.2 Receiver (CRC-16, delays, multi-threading). |
-| `main_receiver.py` | Runs the receiver application. |
-| `log.txt` | Records all packet activity and performance statistics. |
+| `Project_Phase2\section 1\RDT2.2_reciver.py` | Implements the  RDT 2.2 Receiver. |
+| `Project_Phase2\section 1\RDT2.2_sender.py` | Runs the sender application. |
+| `Project_Phase2\section 1\PerformacePloter.py` | Plots transmission time of both Reciver and Sender. |
+| `Project_Phase2\scenario_mode.txt` | Selects what secnario to run. |
+| `Project_Phase2\test_img.JPG` | .JPEG file to be sent. |
+| `Project_Phase2\received.jpg` | .JPEG file as seen by the reciver. |
+| `Project_Phase2\section2` | extra credit code (incomplete). |
 
 ---
 
 ## How to Run
-1. Ensure the sender (`RDT2.2_sender.py`) is running on the same network.
-2. Place a test image (e.g., `test_img.JPG`) in the sender’s path.
-3. Run the receiver first:
-   ```bash
-   python3 main_receiver.py
+1. Frist Run (`RDT2.2_reciver.py`)
+2. Change (`scenario_mode.txt`) to desired secnario
+3. Next run (in a seprate terminal) (`RDT2.2_sender.py`) to select secnario trasnmit .JPEG file
+4. After transmission is complete, run (`PerformacePloter.py`) to output plot of RDT2.2 transmission time 

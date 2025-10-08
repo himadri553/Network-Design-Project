@@ -156,20 +156,15 @@ class RDT22_Sender:
 
 ## Main - Send JPEG image
 if __name__ == "__main__":
-    # User prompts for secnarios
-    print("Select scenario to run:")
-    print("1 - No loss/bit errors")
-    print("2 - Inject bit error into ACK packet (Sender)")
-    print("3 - Inject bit error into DATA packet (Receiver)")
-    scenario = input("Enter option number (1/2/3): ").strip()
+    # Get scenario number
+    scenario_file_path = os.path.join("Project_Phase2", "scenario_mode.txt")
+    if os.path.exists(scenario_file_path):
+        with open(scenario_file_path, "r") as f:
+            scenario = f.read().strip()
     if scenario not in ["1", "2", "3"]:
-        print("Invalid option. Exiting.")
+        print("Invalid scenario mode. Change to 1, 2 or 3. Exiting...")
         sys.exit(1)
 
-    # Write to scenario file (just manually edit that in Project_Phase2/scenario_mode.txt for now)
-    with open("Project_Phase2/scenario_mode.txt", "w") as f:
-        f.write(scenario)
-    
     # Start sender
     my_pic = os.path.join("Project_Phase2", "test_img.JPG")
     my_sender = RDT22_Sender(my_pic, 'localhost', 12000, scenario)

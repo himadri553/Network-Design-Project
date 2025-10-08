@@ -133,8 +133,7 @@ class RDT22_Reciver:
 
 ## Main
 if __name__ == "__main__":
-    # Check if its scenario 3 otherwise its just 1 (this isnt gonna work, reciver starts before sender)
-    scenario = "1"  
+    # Check if its scenario 3 otherwise its just 1 
     scenario_file_path = os.path.join("Project_Phase2", "scenario_mode.txt")
     if os.path.exists(scenario_file_path):
         with open(scenario_file_path, "r") as f:
