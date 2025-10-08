@@ -4,7 +4,7 @@ EECE 4830 - Network Design
 Programming Project Phase 2 - Section II
 RDT22_Receiver_Advanced.py
 
-Implements RDT 2.2 Receiver with extra credit features:
+Implements RDT 2.2 Receiver w/ extra credit:
  - CRC-16 Error Detection
  - Random Packet Delay
  - Multi-threading (Receive + ACK)
