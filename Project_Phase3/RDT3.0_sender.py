@@ -24,7 +24,7 @@ class RDT30_Sender:
         self.server_port = server_port
         self.client_socket = socket(AF_INET, SOCK_DGRAM)
         self.client_socket.settimeout(0.5)  # 500 ms timeout (recommended 300-500ms)
-        print("RDT3.0 sender ready (timeout=0.05s)")
+        print("RDT3.0 sender ready (timeout=0.5s)")
 
         self.seq = 0  # current sequence number
 
@@ -139,4 +139,6 @@ if __name__ == "__main__":
         print(f"Test image not found at {image_path}. Please add a file named 'test_img.JPG' under Project_Phase3 and rerun.")
         sys.exit(1)
 
-    sender = RDT30_Sender("test_img.JPG", server_name="localhost", server_port=12000)
+    sender = RDT30_Sender(image_path, server_name="localhost", server_port=12000)
+    sender.send_full_file()
+

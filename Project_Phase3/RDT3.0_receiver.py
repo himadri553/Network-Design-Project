@@ -44,13 +44,16 @@ class RDT30_Receiver:
 
     def _read_scenario_file(self):
         scenario_path = os.path.join("Project_Phase3", "scenario_mode.txt")
-        scenario = "1"
-        loss_rate = 0.2  # default 20%
+        scenario = 1          # default scenario as integer
+        loss_rate = 0.2       # default 20%
         if os.path.exists(scenario_path):
             with open(scenario_path, "r") as f:
                 lines = [l.strip() for l in f.readlines() if l.strip() != ""]
             if len(lines) >= 1:
-                scenario = lines[0]
+                try:
+                    scenario = int(lines[0])   # convert to int
+                except:
+                    pass
             if len(lines) >= 2:
                 try:
                     loss_rate = float(lines[1])
@@ -94,14 +97,13 @@ class RDT30_Receiver:
             recv_checksum = struct.unpack('!H', packet[1:3])[0]
             data = packet[3:]
 
-            # Scenario 5: Simulate DATA packet loss (receiver drops packet without ACK)
-            if self.scenario == "5" and random.random() < self.loss_rate:
+            # Scenario 5: Simulate DATA packet loss
+            if self.scenario == 5 and random.random() < self.loss_rate:
                 print(f"[Scenario 5] Simulating DATA loss for seq {seq_num} (dropped)")
-                # Do not send ACK, do not write; just drop the packet
                 continue
 
-            # Scenario 3: Inject bit error into data (as before)
-            if self.scenario == "3" and random.random() < self.loss_rate:
+            # Scenario 3: Inject bit error into data
+            if self.scenario == 3 and random.random() < self.loss_rate:
                 print(f"[Scenario 3] Injecting bit error into DATA packet seq {seq_num}")
                 if len(data) > 0:
                     corrupted_byte = bytes([data[0] ^ 0b00000001])
@@ -113,10 +115,8 @@ class RDT30_Receiver:
                 # Good packet
                 self.file.write(data)
                 print(f"Received valid packet seq {seq_num} - writing and ACKing")
-                # Send ACK = seq_num
                 self.server_socket.sendto(str(seq_num).encode(), client_address)
                 self.expected_seq = 1 - self.expected_seq
-                # Reset retry counter for this seq
                 self.retry_counter[seq_num] = 0
             else:
                 # Corrupt or out-of-order packet
@@ -124,20 +124,17 @@ class RDT30_Receiver:
                 print(f"[Retry] Rejected packet seq {seq_num} ({self.retry_counter[seq_num]} rejects)")
 
                 if self.retry_counter[seq_num] >= self.max_retries:
-                    print(f"[WARN] Too many rejects for seq {seq_num}, forcing acceptance to continue")
-                    # Force acceptance to avoid deadlock (demo mode)
+                    print(f"[WARN] Too many rejects for seq {seq_num}, forcing acceptance")
                     self.file.write(data)
                     self.server_socket.sendto(str(seq_num).encode(), client_address)
                     self.expected_seq = 1 - self.expected_seq
                     self.retry_counter[seq_num] = 0
                 else:
-                    # Resend last ACK (i.e., ACK for previous correct seq)
                     last_ack = 1 - self.expected_seq
                     print(f"Resending last ACK = {last_ack}")
                     self.server_socket.sendto(str(last_ack).encode(), client_address)
 
 
 if __name__ == "__main__":
-    print("Receiver started, waiting for packets...")
-    recv = RDT30_Receiver()
-    recv.run_receiver()
+    recv = RDT30_Receiver()  # no arguments here
+    recv.run_receiver()       # call the correct method
