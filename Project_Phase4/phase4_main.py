@@ -4,10 +4,6 @@
     phase4_main.py:
     Is the main runner file for project phase 4. Prompts the user to select scenario mode and displays some debug messages.
     Run this code only to run Phase 4.
-    
-    TODO:
-    - Make prompt functionality
-    - 
 
 """
 # phase4_main.py
@@ -15,8 +11,36 @@ from sender_phase4 import GBN_Sender
 from reciver_phase4 import GBN_Receiver
 import threading
 
-def main():
+def run_single_transfer(scenario, loss_prob, timeout=0.05, window_size=10, protocol="GBN"):
+    # Load file
+    file_bytes = open("test_img.bmp", "rb").read()
 
+    if protocol == "UDP":
+        return run_udp_transfer(file_bytes)
+
+    elif protocol == "Stop&Wait":
+        return run_sw_transfer(file_bytes)
+
+    elif protocol == "GBN":
+        receiver = GBN_Receiver(12000, scenario=scenario, loss_prob=loss_prob)
+        thread = threading.Thread(target=receiver.run_receiver, daemon=True)
+        thread.start()
+
+        sender = GBN_Sender(
+            "127.0.0.1",
+            12000,
+            scenario=scenario,
+            loss_prob=loss_prob,
+            timeout_interval=timeout,
+            window_size=window_size
+        )
+
+        completion_time = sender.run_sender(file_bytes)
+        thread.join(timeout=1)
+        return completion_time
+
+
+def main():
     print("\n--- EECE 4830 / Phase 4 ---")
     print("Go-Back-N Data Transfer Scenarios:")
     print("1 - No loss/bit errors")
