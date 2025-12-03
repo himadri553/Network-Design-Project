@@ -12,3 +12,7 @@
     - Performance comparison of Phase 2, Phase 3, Phase 4 (and TCP)
 
 """
+
+class PLOTTER5:
+    def __init__(self):
+        pass

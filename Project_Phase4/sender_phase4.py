@@ -28,7 +28,6 @@ class GBN_Sender:
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.settimeout(0.01)
 
-
         # GBN variables
         self.base = 1
         self.nextseqnum = 1
