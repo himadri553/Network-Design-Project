@@ -1,0 +1,19 @@
+# =========================================================
+# Phase 5 Scenarios data file
+# Scenarios:
+#   1 - Congestion Window Size vs Time
+#   2 - Sample RTT vs Time
+#   3 - Retransmission Timeout (RTO) vs Time
+#   4-12 - Completion Time vs Loss/Error Rate (0%–70%)
+#   12-22 - Completion Time vs Timeout Value (10ms–100ms)
+#   22-52 - Completion Time vs Window Size (1–50)
+
+# =========================================================
+
+scenarios:
+  1:
+    name: "Congestion_Window_vs_Time"
+
+  2:
+    name: "Sample RTT vs Time"
+    

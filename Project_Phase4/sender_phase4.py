@@ -78,7 +78,6 @@ class GBN_Sender:
         self.start_timer()
 
     # -------------- MAIN SEND LOOP --------------
-
     def run_sender(self, file_bytes):
         CHUNK = 1024
         file_chunks = [file_bytes[i:i+CHUNK] for i in range(0, len(file_bytes), CHUNK)]
