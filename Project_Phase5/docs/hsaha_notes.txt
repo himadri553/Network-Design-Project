@@ -1,0 +1,21 @@
+Issues thats not in phase 1b:
+    - just the chunk of the image is sent (easy)
+    - opting to send full packet (data, seq_num, etc.) which is harder
+        - becuase 
+
+Packet Structure:
+    self.seq 
+    self.ack 
+    self.flags 
+    self.length 
+    self.checksum 
+    self.payload 
+
+main:
+    # Start reciver thread and sender
+
+    # Split file into chunks
+    img_in_chunks[1, 2, 3]
+
+    # Handoff sender
+

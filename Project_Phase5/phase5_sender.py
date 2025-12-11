@@ -4,6 +4,8 @@
 import socket
 import struct
 import zlib
+from PIL import Image
+from packet5 import PHASE5_PACKET
 
 class SENDER5:
     def __init__(self, plotter):
@@ -30,49 +32,33 @@ class SENDER5:
         self.base = 1
         self.nextseqnum = 1
 
-    def tcp_send(self, seq, ack, flags, payload=b""):
-        """ 
-        Builds and sends a TCP packet with the headers:
-        - seq
-        - ack
-        - flags
-        - lenght
-        - checksum
-        - payload 
-        """
-        # Set flag bytes
+    def tcp_send_pk(self, seq, ack, flag, length=0, checksum=0, payload=b""):
+        """ Use this to send packet over UPD to reciver """
+        # Convert flag into bytes
         flag_byte = 0
-        if "SYN" in flags: flag_byte |= 0b001
-        if "ACK" in flags: flag_byte |= 0b010
-        if "FIN" in flags: flag_byte |= 0b100
-        length = len(payload)
+        if "SYN" in flag: flag_byte |= 0b001
+        if "ACK" in flag: flag_byte |= 0b010
+        if "FIN" in flag: flag_byte |= 0b100
 
-        # Get checksum and build final header
-        header = struct.pack("!IIBHI", seq, ack, flag_byte, length, 0)
-        checksum = zlib.crc32(header + payload) & 0xffffffff
-        header = struct.pack("!IIBHI", seq, ack, flag_byte, length, checksum)
-
-        # Send segment
-        segment = header + payload
-        self.sock.sendto(segment, (self.receiver_ip, self.receiver_port))
+        # Create a packet and send it
+        my_packet = PHASE5_PACKET(seq, ack, flag_byte, length, checksum, payload)
+        self.sock.sendto(my_packet.pack(), (self.receiver_ip, self.receiver_port))
 
     def run_tx(self, img_in_chunks, secnario_num=0):
         """ Transmits one file based on secnario_data """
+        self.img_in_chunks = img_in_chunks
+        
         print("Running Secnario Number:", secnario_num)
-
-        ### TEsting stuff
         if secnario_num == 0:
             print("Testing mode")
+            self.secnario_0_testing()
 
-        self.tcp_send(seq=1, ack=0, flags="SYN")
-        print("sent SYN packet")
-
-        # Assign all self. variables based on yaml file (temp values for now)
-
-        ## Run state machine ##
-        # Send SYN, wait for SYN-ACK, then send ACK
-
-
-        # Send data packet, , unless timeout
-
-
+    """ Each secnario split into diffrent methods """
+    def secnario_0_testing(self):
+        ### TEsting stuff - Just send some image data to be constructed
+        print("(TESTING) TX: Sending some chunks")
+        self.tcp_send_pk(seq=1, ack=0, flag='DATA', payload=self.img_in_chunks[1])
+        self.tcp_send_pk(seq=2, ack=0, flag='DATA', payload=self.img_in_chunks[2])
+        self.tcp_send_pk(seq=3, ack=0, flag='DATA', payload=self.img_in_chunks[3])
+        self.tcp_send_pk(seq=4, ack=0, flag='DATA', payload=self.img_in_chunks[4])
+        self.tcp_send_pk(seq=5, ack=0, flag='FIN')

@@ -17,6 +17,9 @@
     6. Completion Time vs Window Size (1-50)
     Performance comparison of Phase 2, Phase 3, Phase 4 (and TCP)
 
+    TODO:
+    - Make it so that the recived image is consturcted
+
 
 """
 from phase5_sender import SENDER5
@@ -24,6 +27,7 @@ from phase5_reciver import RECIVER5
 from plotter import PLOTTER5
 import traceback
 import threading
+import os
 
 def main():
     # Start UPD connection thru init of the tx and rx
@@ -35,25 +39,22 @@ def main():
         print("Failed UDP connection: ")
         traceback.print_exc() 
         return
-    rx_thread = threading.Thread(target=my_reciver.run_rx, daemon=True)
+    rx_thread = threading.Thread(target=my_reciver.run_rx, daemon=False)
     rx_thread.start()
 
     # Split image into chunks
+    img_in_chunks = []
+    pic_path = os.path.join("Project_Phase5", "img", "test_img.bmp")
+    with open(pic_path, "rb") as f:
+        file_data = f.read()
     CHUNK_SIZE = 1024
-    with open(r"Project_Phase5\test_img.bmp", "rb") as f:
-        data = f.read()
-    img_in_chunks = [data[i:i+CHUNK_SIZE] for i in range(0, len(data), CHUNK_SIZE)]
+    for i in range(0, len(file_data), CHUNK_SIZE):
+        chunk = file_data[i:i+CHUNK_SIZE]
+        img_in_chunks.append(chunk) 
 
-    ## TESTING
+    # Handoff full image to sender
+    ## secnario_num 0 for teesting
     my_sender.run_tx(img_in_chunks=img_in_chunks, secnario_num=0)
-    tx_thread = threading.Thread(target=my_sender.run_tx, daemon=True)
-    tx_thread.start()
-
-    ## Loop thru all secnarios
-
-    # Close all connections
-
-    # Output plots
 
     return
 
