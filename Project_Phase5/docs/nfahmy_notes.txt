@@ -1,0 +1,46 @@
+Differences from Phase 1B:
+- Phase 1B only sent raw chunks of the file, without any protocol logic.
+- Phase 5 is much more advanced:
+What’s new / harder here:
+- Instead of sending just the image bytes, we now send full TCP-like packets.
+- Each packet includes:
+        - sequence numbers
+        - acknowledgments
+        - flags (SYN, ACK, FIN)
+        - checksums
+        - length field
+        - payload
+- This is basically building a mini TCP from scratch on top of UDP.
+
+Packet Structure (Phase 5):
+Each packet we send has these fields:
+- seq — the sequence number of the packet
+- ack — acknowledgment number
+- flags — can be SYN, ACK, FIN, DATA
+- length — size of the payload
+- checksum — CRC32 over header + payload
+- payload — a chunk of the image file
+This structure is used by both sender and receiver to make decisions about ordering, reliability, and connection state.
+
+Main Program Flow (High-Level):
+1. Start the receiver thread
+- The receiver binds to a UDP port.
+- It waits for SYN packets → completes the 3-way handshake.
+- Then it listens for DATA packets and builds the image in order.
+
+2. Read and split the input image
+- We take the BMP image and split it into fixed-size chunks:
+
+img_chunks = [chunk1, chunk2, chunk3, ...]
+
+- Each chunk becomes the payload of one TCP-style segment.
+
+3. Hand off everything to the sender
+The sender:
+- begins TCP Slow Start
+- sends packets according to cwnd
+- retransmits on timeout
+- updates RTT and RTO
+- handles duplicate ACKs for fast retransmit (Reno mode)
+- sends FIN when done
+This continues until all chunks are ACKed and the connection closes.

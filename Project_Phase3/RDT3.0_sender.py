@@ -33,13 +33,16 @@ class RDT30_Sender:
 
     def _read_scenario_file(self):
         scenario_path = os.path.join("Project_Phase3", "scenario_mode.txt")
-        scenario = "1"
-        loss_rate = 0.2
+        scenario = 1          # default scenario as integer
+        loss_rate = 0.2       # default 20%
         if os.path.exists(scenario_path):
             with open(scenario_path, "r") as f:
                 lines = [l.strip() for l in f.readlines() if l.strip() != ""]
             if len(lines) >= 1:
-                scenario = lines[0]
+                try:
+                    scenario = int(lines[0])   # convert to int
+                except:
+                    pass
             if len(lines) >= 2:
                 try:
                     loss_rate = float(lines[1])
@@ -87,19 +90,16 @@ class RDT30_Sender:
 
                 try:
                     ack_msg, _ = self.client_socket.recvfrom(2048)
-                    # Scenario 4: Simulate ACK loss at sender by pretending we didn't receive it
-                    if self.scenario == "4" and random.random() < self.loss_rate:
+                   # Scenario 4: Simulate ACK loss at sender
+                    if self.scenario == 4 and random.random() < self.loss_rate:
                         print(f"[Scenario 4] Simulating ACK loss: ignoring incoming ACK '{ack_msg.decode()}'")
-                        # Treat as if timeout occurred: continue waiting/retransmit
-                        # We simply go to next iteration of while (which will retransmit)
                         continue
 
-                    ack_number = int(ack_msg.decode())
-
-                    # Scenario 2: Inject ACK bit-error (flip ack) with probability loss_rate
-                    if self.scenario == "2" and random.random() < self.loss_rate:
+                    # Scenario 2: Inject ACK bit-error
+                    if self.scenario == 2 and random.random() < self.loss_rate:
                         print(f"[Scenario 2] Injecting ACK bit-error: {ack_number} -> {ack_number ^ 1}")
                         ack_number ^= 1
+
 
                     if ack_number == self.seq:
                         # Correct ACK; move on
@@ -126,19 +126,16 @@ class RDT30_Sender:
 
 if __name__ == "__main__":
     # Prepare scenario file existence check
-    scenario_path = os.path.join("Project_Phase3", "scenario_mode.txt")
+    scenario_path = os.path.join("scenario_mode.txt")
     if not os.path.exists(scenario_path):
-        print("No scenario_mode.txt found under Project_Phase3. Defaulting to scenario 1 with 20% loss rate.")
-        # create a default file for convenience
-        os.makedirs("Project_Phase3", exist_ok=True)
+        print("No scenario_mode.txt found. Defaulting to scenario 1 with 20% loss rate.")
         with open(scenario_path, "w") as f:
             f.write("1\n0.2\n")
 
     image_path = "test_img.JPG"
     if not os.path.exists(image_path):
-        print(f"Test image not found at {image_path}. Please add a file named 'test_img.JPG' under Project_Phase3 and rerun.")
+        print(f"Test image not found at {image_path}. Please add a file named 'test_img.JPG' and rerun.")
         sys.exit(1)
 
     sender = RDT30_Sender(image_path, server_name="localhost", server_port=12000)
-    sender.send_full_file()
-
+    sender.send_full_file()   # <-- This calls the correct method to start sending

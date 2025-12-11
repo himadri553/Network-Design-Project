@@ -6,45 +6,58 @@
 import struct
 import zlib
 
+# Simple TCP-like segment:
+# seq (I), ack (I), flags (B), wnd (H), length (H), checksum (I), payload (variable)
+HEADER_FORMAT = "!IIBHHI"
+HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
+
+FLAG_SYN = 0b0001
+FLAG_ACK = 0b0010
+FLAG_FIN = 0b0100
+FLAG_DATA = 0b1000  # custom flag for data segment
+
+
 class PHASE5_PACKET:
-    def __init__(self, seq, ack, flags, lenght, checksum, payload):
-        """ Assignes all the headers """
+    def __init__(self, seq, ack, flags, wnd, payload=b""):
         self.seq = seq
         self.ack = ack
         self.flags = flags
-        self.length = lenght
-        self.checksum = checksum
-        self.payload = payload      # The image data itself
+        self.wnd = wnd          # receiver window (rwnd)
+        self.payload = payload or b""
+        self.length = len(self.payload)
+        self.checksum = 0
+
+    def compute_checksum(self, raw):
+        # Use CRC32 as a simple checksum
+        return zlib.crc32(raw) & 0xffffffff
 
     def pack(self):
-        """ Converts all the info to raw bytes so that they can be sent, returns raw data"""
-        header = struct.pack("!IIBHI", 
-            self.seq,
-            self.ack,
-            self.flags,
-            self.length,
-            0  # temporary checksum
+        header_wo_checksum = struct.pack(
+            HEADER_FORMAT, self.seq, self.ack, self.flags,
+            self.wnd, self.length, 0
         )
-        checksum = zlib.crc32(header + self.payload) & 0xffffffff
+        raw = header_wo_checksum + self.payload
+        self.checksum = self.compute_checksum(raw)
 
-        header = struct.pack("!IIBHI", 
-            self.seq,
-            self.ack,
-            self.flags,
-            self.length,
-            checksum
+        header = struct.pack(
+            HEADER_FORMAT, self.seq, self.ack, self.flags,
+            self.wnd, self.length, self.checksum
         )
+        return header + self.payload
 
-        raw_bytes = header + self.payload
-        return raw_bytes
+    @classmethod
+    def unpack(cls, raw):
+        header = raw[:HEADER_SIZE]
+        seq, ack, flags, wnd, length, checksum = struct.unpack(HEADER_FORMAT, header)
+        payload = raw[HEADER_SIZE:HEADER_SIZE + length]
 
-    @staticmethod
-    def unpack(raw_bytes):
-        """ Converts all the raw bytes back into data that the reciver can use """
-        header_size = struct.calcsize("!IIBHI")
-        seq, ack, flags, length, checksum = struct.unpack("!IIBHI", raw_bytes[:header_size])
-        payload = raw_bytes[header_size:header_size + length]
+        pkt = cls(seq, ack, flags, wnd, payload)
+        pkt.checksum = checksum
 
-        # Return a packet that the reciver can use
-        clean_packet = PHASE5_PACKET(seq, ack, flags, length, checksum, payload)
-        return clean_packet
+        # Verify checksum
+        tmp_header = struct.pack(
+            HEADER_FORMAT, seq, ack, flags, wnd, length, 0
+        )
+        calc = zlib.crc32(tmp_header + payload) & 0xffffffff
+        pkt.valid = (calc == checksum)
+        return pkt
